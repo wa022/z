@@ -1,89 +1,187 @@
-const iconBoxes = document.querySelectorAll(".icon-box");
-const iconBoxContainers = document.querySelectorAll(".icon-container");
-const closeBtns = document.querySelectorAll(".close-btn");
-const maximizeBtns = document.querySelectorAll(".maximize-btn");A
-const body = document.querySelector("body");
+// SCROLL LAYOUT WITH EASING
+var ScrollLayout = (function() {
 
-iconBoxes.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    let modal = btn.getAttribute("data-modal");
-    document.getElementById(modal).style.display = "block";
-    body.classList.add("prevent-background-scroll");
-  });
+	// cache and initialize some values
+	var config = {
+		// the cbp-fbscroller's sections
+		$sections : $( '#msl > section' ),
+		// the navigation links
+		$navlinks : $( '#msl > nav > a' ),
+		// custom: homenav
+		$homenav : $( '#header-nav > a'),
+		// index of current link / section
+		currentLink : 0,
+		// index of current link / section
+		$body : $( 'html, body' ),
+		// the body animation speed
+		animspeed : 1050,
+		// the body animation easing (jquery easing)
+		animeasing : 'easeInOutExpo'
+	};
+
+	function init() {
+
+		// custom: homenav
+		config.$homenav.on( 'click', function() {
+			scrollAnim( config.$sections.eq( $( this ).index() ).offset().top );
+			return false;
+		} );
+
+		// click on a navigation link: the body is scrolled to the position of the respective section
+		config.$navlinks.on( 'click', function() {
+			scrollAnim( config.$sections.eq( $( this ).index() ).offset().top );
+			return false;
+		});
+
+		var waypoints = $('#sec2').waypoint({
+			handler: function(direction) {
+				$('#fix-menu').fadeToggle("fast", "linear");
+			},
+			offset: '50%'
+		});
+
+
+	}
+
+	// function to scroll / animate the body
+	function scrollAnim( myTop ) {
+		config.$body.stop().animate( { scrollTop : myTop }, config.animspeed, config.animeasing );
+	}
+
+	return { init : init };
+
+})();
+
+
+// ADDITIONAL FEATURES
+$(document).ready(function(){
+	// SECTIONS HEIGHT BASED ON VIEWPORT
+	resizeDiv();
+
+	// SLICK SLIDER
+	$('.portfolio-slider').slick({
+		arrows: false,
+		dots: true,
+		infinite: false,
+		speed: 300,
+		slidesToShow: 4,
+		slidesToScroll: 4,		
+		responsive: [
+		    {
+		      breakpoint: 1024,
+		      settings: {
+		        slidesToShow: 3,
+		        slidesToScroll: 3
+		      }
+		    },
+		    {
+		      breakpoint: 600,
+		      settings: {
+		        slidesToShow: 2,
+		        slidesToScroll: 2
+		      }
+		    },
+		    {
+		      breakpoint: 480,
+		      settings: {
+		        slidesToShow: 1,
+		        slidesToScroll: 1
+		      }
+		    }
+		]
+	});
+
+	// CUSTOM SLICK NAV
+	$('.next-slide').click(function(){
+	    $(".slick-slider").slick('slickNext');
+	});
+
+	$('.prev-slide').click(function(){
+	    $(".slick-slider").slick('slickPrev');
+	});
+
+
+	$('.slick-slider').on('edge', function(event, slick, direction) {
+		if (direction === 'left') {
+			$(".next-slide").attr('src', 'https://himigatliwanag.files.wordpress.com/2016/01/slick-next-edge.png');
+		}
+	}).on('swipe', function(event, slick, direction){
+		if (direction === 'right') {
+			$(".next-slide").attr('src', 'https://himigatliwanag.files.wordpress.com/2016/01/slick-next-fill.png');
+		}
+	});
+
+	$('.slick-slider').on('edge', function(event, slick, direction) {
+		if (direction === 'right') {
+			$(".prev-slide").attr('src', 'https://himigatliwanag.files.wordpress.com/2016/01/slick-prev-edge.png');
+		}
+	}).on('swipe', function(event, slick, direction){
+		if (direction === 'left') {
+			$(".prev-slide").attr('src', 'https://himigatliwanag.files.wordpress.com/2016/01/slick-prev-fill.png');
+		}
+	});
+
+
 });
 
-closeBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    let modal = btn.closest(".popup");
-    modal.style.display = "none";
-    body.classList.remove("prevent-background-scroll");
-    iconBoxContainers.forEach((container) => {
-      container.style.display = "flex";
+window.onresize = function(event) {
+	resizeDiv();
+};
+
+function resizeDiv() {
+	vpw = $(window).width();
+	vph = $(window).height();
+	$('.page-sections').css({'min-height': vph + 'px'});
+};
+
+$(function() {
+		ScrollLayout.init();
+});
+
+
+
+// ____________________________ Cache selectors
+var lastId,
+    topMenu = $("#fix-menu"),
+    topMenuHeight = topMenu.outerHeight()+15,
+    // All list items
+    menuItems = topMenu.find("a"),
+    // Anchors corresponding to menu items
+    scrollItems = menuItems.map(function(){
+      var item = $($(this).attr("href"));
+      if (item.length) { return item; }
     });
-  });
+
+// Bind click handler to menu items
+// so we can get a fancy scroll animation
+menuItems.click(function(e){
+  var href = $(this).attr("href"),
+      offsetTop = href === "#" ? 0 : $(href).offset().top-topMenuHeight+1;
+  $('html, body').stop().animate({ 
+      scrollTop: offsetTop
+  }, 300);
+  e.preventDefault();
 });
 
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("popup")) {
-    e.target.style.display = "none";
-    body.classList.remove("prevent-background-scroll");
-  }
-});
-
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("popup")) {
-    e.target.style.display = "none";
-    body.classList.remove("prevent-background-scroll");
-  }
-});
-
-maximizeBtns.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    let modal = btn.closest(".popup");
-    let container = modal.querySelector(".popup-container");
-    let body = modal.querySelector(".popup-body");
-
-    if (modal.classList.contains("maximized")) {
-      container.style.width = "min(900px, 90%)";
-      container.style.top = "45%";
-      body.style.height = "70vh";
-    } else {
-      container.style.width = "100%";
-      container.style.top = "50%";
-      body.style.height = "90vh";
-    }
-
-    modal.classList.toggle("maximized");
-    body.classList.toggle("prevent-scroll");
-  });
-});
-
-var swiper = new Swiper(".swiper", {
-  preventClicks: true,
-  noSwiping: true,
-  freeMode: false,
-  spaceBetween: 10,
-  navigation: {
-    nextEl: ".next",
-    prevEl: ".prev",
-  },
-  mousewheel: {
-    invert: false,
-    thresholdDelta: 50,
-    sensitivity: 1,
-  },
-  breakpoints: {
-    0: {
-      slidesPerView: 1,
-    },
-    680: {
-      slidesPerView: 2,
-    },
-    1100: {
-      slidesPerView: 3,
-    },
-    1600: {
-      slidesPerView: 4,
-    },
-  },
+// Bind to scroll
+$(window).scroll(function(){
+   // Get container scroll position
+   var fromTop = $(this).scrollTop()+topMenuHeight;
+   
+   // Get id of current scroll item
+   var cur = scrollItems.map(function(){
+     if ($(this).offset().top < fromTop)
+       return this;
+   });
+   // Get the id of the current element
+   cur = cur[cur.length-1];
+   var id = cur && cur.length ? cur[0].id : "";
+   
+   if (lastId !== id) {
+       lastId = id;
+       // Set/remove active class
+       menuItems
+         .parent().removeClass("active")
+         .end().filter("[href='#"+id+"']").parent().addClass("active");
+   }                   
 });
